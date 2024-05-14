@@ -76,7 +76,7 @@ class ViewPanel {
 
         // The center of the viewpanel is calculated using a spherical vector with the rotation
         // values, and adding it to the position of the camera-point.
-        let coords_p_viewpanel = this.vec_sph_to_cart(this.camera_distance, this.rotation[0], this.rotation[1]);
+        let coords_p_viewpanel = this.sph_to_cart(this.camera_distance, this.rotation[0], this.rotation[1]);
 
         this.p_viewpanel = new Point3D(
             this.p_camera.x + coords_p_viewpanel[0], this.p_camera.y + coords_p_viewpanel[1], this.p_camera.z + coords_p_viewpanel[2]
@@ -94,7 +94,7 @@ class ViewPanel {
 
         // Redraw the camera -> viewpanel vector with the new values.
         this.vect_camera_viewpanel = new Vector3D(this.p_camera, this.p_viewpanel);
-    };
+    }
 
     // Function to rotate the camera in a given direction.
     rotateCamera (rotation) {
@@ -102,12 +102,25 @@ class ViewPanel {
         this.rotation[1] += rotation[1];
 
         // Redraw the camera -> viewpanel vector with the new values.
-        let coords_p_viewpanel = this.vec_sph_to_cart(this.camera_distance, this.rotation[0], this.rotation[1]);
+        let coords_p_viewpanel = this.sph_to_cart(this.camera_distance, this.rotation[0], this.rotation[1]);
         this.p_viewpanel = new Point3D(
             this.p_camera.x + coords_p_viewpanel[0], this.p_camera.y + coords_p_viewpanel[1], this.p_camera.z + coords_p_viewpanel[2]
         );
         this.vect_camera_viewpanel = new Vector3D(this.p_camera, this.p_viewpanel);
-    };
+    }
+
+    multiplyMatrices (vector, matrix) {
+        let rowx = vector.x * matrix[0][0] + vector.y * matrix[1][0] + vector.z * matrix[2][0];
+        let rowy = vector.x * matrix[0][1] + vector.y * matrix[1][1] + vector.z * matrix[2][1];
+        let rowz = vector.x * matrix[0][2] + vector.y * matrix[1][2] + vector.z * matrix[2][2];
+        return [rowx.toFixed(5), rowy.toFixed(5), rowz.toFixed(5)];
+    }
+
+    rotate_x_axis (theta, point) {
+        let rotation_matrix = [ [1, 0, 0], [0, Math.cos(theta), -Math.sin(theta)], [0, Math.sin(theta), Math.cos(theta)] ];
+        return this.multiplyMatrices (point, rotation_matrix);
+    }
+
 
     // Function used to project a given threedimensional points onto the viewpanel, i.e. you
     // see the point from the perspective of the viewpanel. The function returns a twodimensional
@@ -132,7 +145,7 @@ class ViewPanel {
     }
 
     // Function for converting a vector with spherical coordinates to a vector with cartesian coordinates.
-    vec_sph_to_cart (r, theta, phi) {
+    sph_to_cart (r, theta, phi) {
         // Three variables are created using the conversion formula to convert the spherical coordinates
         // to cartesian.
         let x = r * Math.sin(theta) * Math.cos(phi);
@@ -144,7 +157,7 @@ class ViewPanel {
     }
 
     // Function for converting a vector with cartesian coordinates to a vector with spherical coordinates.
-    coor_cart_to_sph (x, y, z) {
+    cart_to_sph (x, y, z) {
         // The length of the vector is calculated and saved to a variable.
         let r = Math.sqrt(x**2 + y**2 + z**2);
 
@@ -229,7 +242,7 @@ class Canvas {
 let scene = new Scene();
 
 // Create a global canvas instance.
-let canvas = new Canvas([200, 150], [20, 20]);
+let canvas = new Canvas([200, 150], [25, 25]);
 
 // Add points to make a cube for demonstration.
 scene.addPoint(new Point3D(0, 0, 0));
@@ -273,7 +286,7 @@ document.addEventListener("keydown", function(event) {
 
 // Function used by p5.js to initialize the p5.js canvas on the webpage.
 function setup () {
-    createCanvas(800, 400);
+    createCanvas(1920, 1080);
     rectMode(CENTER);
 }
 
