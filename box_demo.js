@@ -33,8 +33,8 @@ class Vector3D {
         this.theta;
         this.phi;
 
-        // Modify the theta attribute, if the lenght of the vector is 0 then the angle should be set to 0
-        // to avoid division errors.
+        // Modify the theta attribute, if the lenght of the vector is 0 then the angle should be
+        // set to 0 to avoid division errors.
         if (this.r == 0) {
             this.theta = 0;
         } else {
@@ -42,8 +42,8 @@ class Vector3D {
             this.theta = Math.acos(this.z/this.r);
         }
 
-        // Modify the phi attribute, if the x-coordinate of the cartesian vector is 0, then the angle should
-        // be set to pi/2 to avoid division errors, since arccos(inf) = pi/2.
+        // Modify the phi attribute, if the x-coordinate of the cartesian vector is 0, then the
+        // angle should be set to pi/2 to avoid division errors, since arccos(inf) = pi/2.
         if (this.x == 0) {
             this.phi = Math.PI/2;
         } else {
@@ -68,26 +68,31 @@ class ViewPanel {
         // The fixed distance from the point where vectors are drawn to, in order to intercept
         // the viewpanel i.e. the FOV. In order for an angle-like fov, this value should be
         // relative to either the width or height of the viewpanel. By default this value is set
-        // to 9/7 times the panel width, which equates to an fov of 90 degrees.
+        // to 9/7 times the panel width, which equates to an fov of 70 degrees.
         this.camera_distance = this.width * 9/7;
 
         // The center point of the camera (not the viewpanel). Set to be (0, 0, 0) by default.
-        this.p_camera = new Point3D(-50, 0, 0);
+        this.p_camera = new Point3D(-75, 5, 5);
 
         // The center of the viewpanel is calculated using a spherical vector with the rotation
         // values, and adding it to the position of the camera-point.
         let coords_p_viewpanel = this.sph_to_cart(this.camera_distance, this.rotation[0], this.rotation[1]);
 
+        // Create the center point of the viewpanel using the cartesian vector for the rotational
+        // values of the camera and the defined distance between the camera and viewpanel.
         this.p_viewpanel = new Point3D(
-            this.p_camera.x + coords_p_viewpanel[0], this.p_camera.y + coords_p_viewpanel[1], this.p_camera.z + coords_p_viewpanel[2]
+            this.p_camera.x + coords_p_viewpanel[0],
+            this.p_camera.y + coords_p_viewpanel[1],
+            this.p_camera.z + coords_p_viewpanel[2]
         );
 
-        // A vector from the position of the camera to the position of the viewpanel.
+        // The vector from the position of the camera to the position of the viewpanel.
         this.vect_camera_viewpanel = new Vector3D(this.p_camera, this.p_viewpanel);
     }
 
     // Function to move the camera in a given direction.
     moveCamera (x, y, z) {
+        // Adjust the coordinates of the camera-point by the argument values.
         this.p_camera.x += x;
         this.p_camera.y += y;
         this.p_camera.z += z;
@@ -98,29 +103,27 @@ class ViewPanel {
 
     // Function to rotate the camera in a given direction.
     rotateCamera (rotation) {
+        // Adjust the rotation values by the argument values.
         this.rotation[0] += rotation[0];
         this.rotation[1] += rotation[1];
 
         // Redraw the camera -> viewpanel vector with the new values.
+
+        // The center of the viewpanel is calculated using a spherical vector with the rotation
+        // values, and adding it to the position of the camera-point.
         let coords_p_viewpanel = this.sph_to_cart(this.camera_distance, this.rotation[0], this.rotation[1]);
+
+        // Create the center point of the viewpanel using the cartesian vector for the rotational
+        // values of the camera and the defined distance between the camera and viewpanel.
         this.p_viewpanel = new Point3D(
-            this.p_camera.x + coords_p_viewpanel[0], this.p_camera.y + coords_p_viewpanel[1], this.p_camera.z + coords_p_viewpanel[2]
+            this.p_camera.x + coords_p_viewpanel[0],
+            this.p_camera.y + coords_p_viewpanel[1],
+            this.p_camera.z + coords_p_viewpanel[2]
         );
+        
+        // The vector from the position of the camera to the position of the viewpanel.
         this.vect_camera_viewpanel = new Vector3D(this.p_camera, this.p_viewpanel);
     }
-
-    multiplyMatrices (vector, matrix) {
-        let rowx = vector.x * matrix[0][0] + vector.y * matrix[1][0] + vector.z * matrix[2][0];
-        let rowy = vector.x * matrix[0][1] + vector.y * matrix[1][1] + vector.z * matrix[2][1];
-        let rowz = vector.x * matrix[0][2] + vector.y * matrix[1][2] + vector.z * matrix[2][2];
-        return [rowx.toFixed(5), rowy.toFixed(5), rowz.toFixed(5)];
-    }
-
-    rotate_x_axis (theta, point) {
-        let rotation_matrix = [ [1, 0, 0], [0, Math.cos(theta), -Math.sin(theta)], [0, Math.sin(theta), Math.cos(theta)] ];
-        return this.multiplyMatrices (point, rotation_matrix);
-    }
-
 
     // Function used to project a given threedimensional points onto the viewpanel, i.e. you
     // see the point from the perspective of the viewpanel. The function returns a twodimensional
@@ -141,6 +144,7 @@ class ViewPanel {
         let angle_y = (Math.PI / 2) - Math.abs(relative_theta);
         let y = this.camera_distance * (Math.sin(relative_theta)/Math.sin(angle_y));
 
+        // Return the point equal to the x and y values, proportional to the dimensions of the canvas.
         return new Point2D(x * this.width, y * this.height);
     }
 
@@ -203,6 +207,104 @@ class Scene {
     addPoint (point3d) {
         this.points.push(point3d);
     }
+
+    // Function for multiplying two matrices together, useful for rotating vectors/points.
+    multiplyMatrices (vector, matrix) {
+        let rowx = vector.x * matrix[0][0] + vector.y * matrix[1][0] + vector.z * matrix[2][0];
+        let rowy = vector.x * matrix[0][1] + vector.y * matrix[1][1] + vector.z * matrix[2][1];
+        let rowz = vector.x * matrix[0][2] + vector.y * matrix[1][2] + vector.z * matrix[2][2];
+        return new Point3D(rowx, rowy, rowz);
+    }
+
+    // Function for translating two points relative to eachother, useful for rotating vectors around
+    // an anchor point.
+    translate (point, anchor) {
+        // Set the coordinates equal to the vector from the anchor to the point.
+        let x = point.x - anchor[0];
+        let y = point.y - anchor[1];
+        let z = point.z - anchor[2];
+
+        // Return a 3D point equal to the vector coordinates.
+        return new Point3D(x, y, z);
+    };
+
+    // Rotational matrix around the x-axis.
+    rotate_x_axis (point, theta, anchor) {
+        // Define the rotational matrix for rotation around the x-axis.
+        let rotation_matrix = [
+            [1, 0, 0],
+            [0, Math.cos(theta), -Math.sin(theta)],
+            [0, Math.sin(theta), Math.cos(theta)]
+        ];
+
+        // Define two array with the negative and positive coordinates for the vector
+        // to the rotational anchor point.
+        let negative_anchor = [-anchor.x, -anchor.y, -anchor.z];
+        let positive_anchor = [anchor.x, anchor.y, anchor.z];
+
+        // Define a new point that is equal to the translation vector from the anchor
+        // to the argument point using the negative anchor coordnates.
+        let translated_point = this.translate(point, positive_anchor);
+
+        // Rotate the translated point by multiplying it with the rotational matrix.
+        let rot = this.multiplyMatrices(translated_point, rotation_matrix);
+
+        // Return a translation of the point back to its relative rotated position 
+        // using the positive anchor coordinates.
+        return this.translate(rot, negative_anchor);
+    }
+
+    // Rotational matrix around the y-axis.
+    rotate_y_axis (point, theta, anchor) {
+        // Define the rotational matrix for rotation around the x-axis.
+        let rotation_matrix = [
+            [Math.cos(theta), 0, Math.sin(theta)],
+            [0, 1, 0],
+            [-Math.sin(theta), 0, Math.cos(theta)]
+        ];
+
+        // Define two array with the negative and positive coordinates for the vector
+        // to the rotational anchor point.
+        let negative_anchor = [-anchor.x, -anchor.y, -anchor.z];
+        let positive_anchor = [anchor.x, anchor.y, anchor.z];
+
+        // Define a new point that is equal to the translation vector from the anchor
+        // to the argument point using the negative anchor coordnates.
+        let translated_point = this.translate(point, positive_anchor);
+
+        // Rotate the translated point by multiplying it with the rotational matrix.
+        let rot = this.multiplyMatrices(translated_point, rotation_matrix);
+
+        // Return a translation of the point back to its relative rotated position 
+        // using the positive anchor coordinates.
+        return this.translate(rot, negative_anchor);
+    }
+
+    // Rotational matrix around the z-axis.
+    rotate_z_axis (point, theta, anchor) {
+        // Define the rotational matrix for rotation around the x-axis.
+        let rotation_matrix = [
+            [Math.cos(theta), -Math.sin(theta), 0],
+            [Math.sin(theta), Math.cos(theta), 0],
+            [0, 0, 1]
+        ];
+
+        // Define two array with the negative and positive coordinates for the vector
+        // to the rotational anchor point.
+        let negative_anchor = [-anchor.x, -anchor.y, -anchor.z];
+        let positive_anchor = [anchor.x, anchor.y, anchor.z];
+
+        // Define a new point that is equal to the translation vector from the anchor
+        // to the argument point using the negative anchor coordnates.
+        let translated_point = this.translate(point, positive_anchor);
+
+        // Rotate the translated point by multiplying it with the rotational matrix.
+        let rot = this.multiplyMatrices(translated_point, rotation_matrix);
+
+        // Return a translation of the point back to its relative rotated position 
+        // using the positive anchor coordinates.
+        return this.translate(rot, negative_anchor);
+    }
 }
 
 // Twodimensional environtment which the viewpanel projects itself into, any instance of this class contains
@@ -242,7 +344,7 @@ class Canvas {
 let scene = new Scene();
 
 // Create a global canvas instance.
-let canvas = new Canvas([200, 150], [25, 25]);
+let canvas = new Canvas([1280, 587], [25, 25]);
 
 // Add points to make a cube for demonstration.
 scene.addPoint(new Point3D(0, 0, 0));
@@ -261,6 +363,10 @@ let move_s = false;
 let move_d = false;
 let move_q = false;
 let move_e = false;
+let move_i = false;
+let move_j = false;
+let move_k = false;
+let move_l = false;
 
 // Create a document eventlistener to allow camera movement and rotation.
 document.addEventListener("keydown", function(event) {
@@ -282,17 +388,31 @@ document.addEventListener("keydown", function(event) {
     if (event.key == "e") {
         move_e = true;
     }
+    if (event.key == "i") {
+        move_i = true;
+    }
+    if (event.key == "j") {
+        move_j = true;
+    }
+    if (event.key == "k") {
+        move_k = true;
+    }
+    if (event.key == "l") {
+        move_l = true;
+    }
 });
 
 // Function used by p5.js to initialize the p5.js canvas on the webpage.
 function setup () {
-    createCanvas(1920, 1080);
+    createCanvas(canvas.width, canvas.height);
     rectMode(CENTER);
 }
 
 // Function used by p5.js to update the p5.js canvas.
 function draw () {
     background(200);
+    
+    // Test for every event listened by the event listener.
     if (move_w) {
         canvas.viewpanel.moveCamera(2, 0, 0);
         move_w = false;
@@ -317,10 +437,33 @@ function draw () {
         canvas.viewpanel.moveCamera(0, 0, -2);
         move_e = false;
     }
+    if (move_i) {
+        canvas.viewpanel.rotateCamera([0, Math.PI/64]);
+        move_i = false;
+    }
+    if (move_j) {
+        canvas.viewpanel.rotateCamera([Math.PI/64,0]);
+        move_j = false;
+    }
+    if (move_k) {
+        canvas.viewpanel.rotateCamera([0, -Math.PI/64]);
+        move_k = false;
+    }
+    if (move_l) {
+        canvas.viewpanel.rotateCamera([-Math.PI/64, 0]);
+        move_l = false;
+    }
 
     // The p5.js canvas is a bit weird so these commands make it function as intended.
     translate(width/2, height/2);
     rotate(Math.PI);
+
+    // Rotate the threedimensional points using the cube center point as the anchor.
+    let anc = new Point3D(5, 5, 5);
+    for (let i = 0; i < scene.points.length; i++) {
+        // Set each 3d points to the return value of the z-axis rotation function.
+        scene.points[i] = scene.rotate_z_axis(scene.points[i], Math.PI/128, anc);
+    }
 
     // Create a render of the canvas instance and save it as a variable.
     let render = canvas.renderCanvas(scene);
@@ -334,7 +477,6 @@ function draw () {
         point(render[i].x, render[i].y);
     }
 
-    
     // Change stroke colour and weight for the lines between points.
     stroke('black');
     strokeWeight(1);
